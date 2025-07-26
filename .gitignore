@@ -1,0 +1,41 @@
+# IntelliJ IDEA 관련 파일
+.idea/
+*.iml
+*.iws
+out/
+
+# Gradle 관련 파일
+.gradle/
+build/
+!gradle-wrapper.jar
+.gradle/cache/
+.gradle/daemon/
+.gradle/workspace/
+.gradle/buildOutputCleanup/
+!gradlew
+!gradlew.bat
+
+# Maven 관련 파일
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+log/
+
+# Spring Boot 관련 로그 파일
+logs/
+*.log
+
+# 환경 설정 파일 (민감정보 포함 가능)
+application.yml
+application-*.yml
+application.properties
+application-*.properties
+.env
+
+# 자바 컴파일 산출물
+*.class
+
+# OS별 불필요 파일
+.DS_Store
+Thumbs.db
