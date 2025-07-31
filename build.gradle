@@ -40,8 +40,21 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	// OpenID4Java
 	implementation 'org.openid4java:openid4java:0.9.8'
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'io.jsonwebtoken:jjwt-api:0.12.6'
+        force 'io.jsonwebtoken:jjwt-impl:0.12.6'
+        force 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    }
 }

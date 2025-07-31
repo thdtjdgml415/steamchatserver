@@ -25,7 +25,7 @@ public class SteamGameItemProcessor implements ItemProcessor<Integer, SteamGame>
     private String baseUrl;
 
     // API 요청에 사용할 언어를 하드코딩합니다.
-    private final String lang = "english";
+    private final String lang = "korean";
 
     /**
      * SteamGameItemProcessor의 생성자입니다.
@@ -45,6 +45,9 @@ public class SteamGameItemProcessor implements ItemProcessor<Integer, SteamGame>
      */
     @Override
     public SteamGame process(Integer appid) throws Exception {
+        // 1초 대기하여 API 과호출을 방지합니다.
+        Thread.sleep(1000);
+
         // Steam API 요청 URL을 구성합니다.
         String url = baseUrl + "?appids=" + appid + "&l=" + lang;
         // API를 호출하고 JSON 응답을 문자열로 가져옵니다.
