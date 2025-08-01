@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
@@ -25,19 +27,20 @@ public class JwtTokenProvider {
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
 
-    public String createAccessToken(String steamId) {
-        return createToken(steamId, accessTokenValidityInMilliseconds);
+    public String createAccessToken(String steamId, Map<String, Object> claims) {
+        return createToken(steamId, claims, accessTokenValidityInMilliseconds);
     }
 
     public String createRefreshToken(String steamId) {
-        return createToken(steamId, refreshTokenValidityInMilliseconds);
+        return createToken(steamId, new HashMap<>(), refreshTokenValidityInMilliseconds);
     }
 
-    private String createToken(String steamId, long validityInMilliseconds) {
+    private String createToken(String steamId, Map<String, Object> claims, long validityInMilliseconds) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(steamId)
                 .setIssuedAt(now)
                 .setExpiration(validity)

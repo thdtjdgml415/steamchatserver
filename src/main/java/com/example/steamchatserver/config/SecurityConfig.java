@@ -45,12 +45,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/steam/**", "/auth/refresh").permitAll() // Steam 로그인 및 토큰 재발급 경로는 인증 없이 접근 허용
-                .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
-            )
+            .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 필요 시에만 세션 생성
-            .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화 (개발 편의를 위해, 실제 서비스에서는 활성화 고려)
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/auth/steam/**", "/auth/refresh").permitAll() // 인증 관련 경로는 모두 허용
+                .requestMatchers("/api/**", "/auth/logout").authenticated() // API 및 로그아웃 경로는 인증된 사용자만 허용
+                .anyRequest().permitAll() // 나머지 요청(예: 프론트엔드 정적 파일)은 일단 모두 허용
+            )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, steamUserDetailsService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

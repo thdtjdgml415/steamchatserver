@@ -2,6 +2,7 @@ package com.example.steamchatserver.controller;
 
 import com.example.steamchatserver.domain.RefreshToken;
 import com.example.steamchatserver.repository.RefreshTokenRepository;
+import com.example.steamchatserver.service.SteamUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -24,7 +25,9 @@ import com.example.steamchatserver.util.JwtTokenProvider;
 import org.springframework.core.env.Environment;
 import java.util.Arrays;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Steam OpenID를 이용한 로그인 처리를 담당하는 컨트롤러입니다.
@@ -47,11 +50,14 @@ public class SteamLoginController {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final SteamUserService steamUserService;
+
     public SteamLoginController(@Value("${steam.openid.endpoint}") String steamOpenIdEndpoint,
                               @Value("${steam.return.url}") String steamReturnUrl,
                               JwtTokenProvider jwtTokenProvider,
                               Environment env,
-                              RefreshTokenRepository refreshTokenRepository) throws OpenIDException {
+                              RefreshTokenRepository refreshTokenRepository,
+                              SteamUserService steamUserService) throws OpenIDException {
         this.steamOpenIdEndpoint = steamOpenIdEndpoint.trim();
         this.steamReturnUrl = steamReturnUrl.trim();
         this.manager = new ConsumerManager();
@@ -59,6 +65,7 @@ public class SteamLoginController {
         this.jwtTokenProvider = jwtTokenProvider;
         this.env = env;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.steamUserService = steamUserService;
     }
 
 // ... (메소드들)
@@ -91,11 +98,6 @@ public class SteamLoginController {
      * @return 로그인 성공 또는 실패 메시지
      * @throws OpenIDException OpenID 관련 오류 발생 시
      */
-
-
-// ... (다른 import 문들)
-
-// ... (클래스 내부)
     @GetMapping("/callback")
     public void steamCallback(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
         try {
@@ -116,14 +118,18 @@ public class SteamLoginController {
             Identifier verifiedId = verification.getVerifiedId();
 
             if (verifiedId != null) {
-                String steamId = verifiedId.getIdentifier();
-                
+                String steamIdUrl = verifiedId.getIdentifier();
+                String steamId64 = steamIdUrl.substring(steamIdUrl.lastIndexOf("/") + 1);
+                System.out.println(String.format("Steam ID: %s", steamId64));
+                // Steam 사용자 정보 조회
+                Map<String, String> userInfo = steamUserService.getPlayerSummaries(steamId64);
+
                 // Access Token 및 Refresh Token 생성
-                String accessToken = jwtTokenProvider.createAccessToken(steamId);
-                String refreshToken = jwtTokenProvider.createRefreshToken(steamId);
+                String accessToken = jwtTokenProvider.createAccessToken(steamId64, new HashMap<>(userInfo));
+                String refreshToken = jwtTokenProvider.createRefreshToken(steamId64);
 
                 // Refresh Token을 DB에 저장
-                refreshTokenRepository.save(new RefreshToken(steamId, refreshToken));
+                refreshTokenRepository.save(new RefreshToken(steamId64, refreshToken));
 
                 // Access Token 쿠키 설정
                 ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
